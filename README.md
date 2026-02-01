@@ -46,7 +46,8 @@ Please place the models in the following paths to ensure compatibility with the 
 ## 📂 ComfyUI
 
 You can use ComfyUI within Flux_Makeup_ComfyUI
-  
+### Workflow Path: 
+Flux_Makeup_ComfyUI/user/default/workflows/flux_makeup.json
   
 
 ## ⏳ Inference Pipeline
