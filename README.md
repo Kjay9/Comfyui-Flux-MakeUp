@@ -16,8 +16,19 @@ We propose **FLUX-Makeup**, a high-fidelity, identityconsistent, and robust make
 ## 🧩 Environment Setup
 
 
+Depending on your use case, please install the corresponding dependencies:
+
+### 1. For Evaluation
+If you want to run the evaluation scripts (e.g., sh eval.sh):
+
 ```
 pip install -r requirements.txt
+```
+### 2. For ComfyUI
+If you want to use the model within the ComfyUI workflow:
+
+```
+pip install -r requirements_comfyUI.txt
 ```
 
 ## 📂 Preparation of Pretrained Models
@@ -26,13 +37,16 @@ We provide pretrained weights for evaluation and deployment. Please download the
 Also, please download the `79999_iter.pth` files from [here](https://huggingface.co/qihoo360/FLUX-Makeup) and place them in the model directory.
 In addition, download the pretrained weights of **Flux-Kontext.dev** from [here](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev) to serve as the backbone model.
 
+#### For ComfyUI Users
+Please place the models in the following paths to ensure compatibility with the ComfyUI integration:
+* `Flux_Makeup_ComfyUI/models/stable_makeup/Flux-Makeup-model/checkpoint.pt`
+* `Flux_Makeup_ComfyUI/models/stable_makeup/face-parsing.PyTorch/79999_iter.pth`
+* `Flux_Makeup_ComfyUI/models/stable_makeup/FLUX.1-Kontext-dev/`
+
 ## 📂 ComfyUI
 
-You can use ComfyUI within Flux_Makeup_ComfyUI, where the model folders need to be placed in:
-
-`Flux_Makeup_ComfyUI/models/stable_makeup`
+You can use ComfyUI within Flux_Makeup_ComfyUI
   
-
   
 
 ## ⏳ Inference Pipeline
