@@ -1,0 +1,77 @@
+{
+  "23": {
+    "inputs": {
+      "flux_path": "models/stable_makeup/FLUX.1-Kontext-dev",
+      "makeup_model_path": "models/stable_makeup/Flux-Makeup-model/checkpoint.pt"
+    },
+    "class_type": "StableMakeup_LoadModel",
+    "meta": {
+      "title": "StableMakeup Load Model"
+    }
+  },
+  "24": {
+    "inputs": {
+      "id_image": ["25", 0],
+      "makeup_image": ["26", 0],
+      "model": ["23", 0],
+      "cfg": 2.5,
+      "steps": 25,
+      "makeup_level": 1.0,
+      "post_level": 1.0
+    },
+    "class_type": "StableMakeup_Sampler",
+    "meta": {
+      "title": "StableMakeup Sampler"
+    }
+  },
+  "25": {
+    "inputs": {
+      "image": "2149268013.jpg",
+      "upload": "image"
+    },
+    "class_type": "LoadImage",
+    "meta": {
+      "title": "Load ID Image"
+    }
+  },
+  "26": {
+    "inputs": {
+      "image": "pasted/image (5).png",
+      "upload": "image"
+    },
+    "class_type": "LoadImage",
+    "meta": {
+      "title": "Load Makeup Reference"
+    }
+  },
+  "27": {
+    "inputs": {
+      "images": ["24", 0],
+      "filename_prefix": "ComfyUI_result"
+    },
+    "class_type": "SaveImage",
+    "meta": {
+      "title": "Save Result Image"
+    }
+  },
+  "28": {
+    "inputs": {
+      "images": ["24", 1],
+      "filename_prefix": "ComfyUI_face_crop"
+    },
+    "class_type": "SaveImage",
+    "meta": {
+      "title": "Save Face Crop"
+    }
+  },
+  "29": {
+    "inputs": {
+      "images": ["24", 2],
+      "filename_prefix": "ComfyUI_makeup_crop"
+    },
+    "class_type": "SaveImage",
+    "meta": {
+      "title": "Save Makeup Crop"
+    }
+  }
+}
