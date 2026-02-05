@@ -340,8 +340,14 @@ class StableMakeup_LoadModel:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "flux_path": ("STRING", {"default": "models/stable_makeup/FLUX.1-Kontext-dev"}),
-                "makeup_model_path": ("STRING", {"default": "models/stable_makeup/Flux-Makeup-model/checkpoint.pt"}),
+                "flux_path": ("STRING", {
+                    "default": "black-forest-labs/FLUX.1-dev",
+                    "tooltip": "Path to FLUX model. Can be a HuggingFace repo ID (e.g., 'black-forest-labs/FLUX.1-dev') or local path (e.g., 'models/stable_makeup/FLUX.1-Kontext-dev')"
+                }),
+                "makeup_model_path": ("STRING", {
+                    "default": "models/stable_makeup/Flux-Makeup-model/checkpoint.pt",
+                    "tooltip": "Path to the makeup model checkpoint file"
+                }),
             }
         }
 
@@ -351,9 +357,48 @@ class StableMakeup_LoadModel:
     CATEGORY = "Stable_Makeup"
 
     def main_loader(self,flux_path,makeup_model_path):
-        pipe = FluxPipeline.from_pretrained(flux_path, torch_dtype=torch.bfloat16, device="cuda")
+        # Resolve model paths - support both local paths and HuggingFace repo IDs
+        def resolve_model_path(path):
+            """
+            Resolve model path to absolute path or return as HuggingFace repo ID.
+            Checks multiple potential locations for local models.
+            """
+            # If it's already an absolute path and exists, use it
+            if os.path.isabs(path) and os.path.exists(path):
+                return path
+            
+            # Check if it looks like a HuggingFace repo ID (contains / but not a local path)
+            if "/" in path and not path.startswith("models/") and not path.startswith("./"):
+                # Assume it's a HuggingFace repo ID like "black-forest-labs/FLUX.1-dev"
+                return path
+            
+            # Try to resolve relative paths from various base directories
+            potential_bases = [
+                folder_paths.base_path,  # ComfyUI base path
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),  # Project root
+                os.getcwd(),  # Current working directory
+                os.path.dirname(os.path.abspath(__file__)),  # This file's directory
+            ]
+            
+            for base in potential_bases:
+                full_path = os.path.join(base, path)
+                if os.path.exists(full_path):
+                    print(f"[Stable_Makeup] Resolved model path: {full_path}")
+                    return full_path
+            
+            # If path doesn't exist locally, return as-is (might be HuggingFace repo ID)
+            print(f"[Stable_Makeup] Warning: Path '{path}' not found locally. Treating as HuggingFace repo ID.")
+            return path
+        
+        resolved_flux_path = resolve_model_path(flux_path)
+        resolved_makeup_path = resolve_model_path(makeup_model_path)
+        
+        print(f"[Stable_Makeup] Loading Flux model from: {resolved_flux_path}")
+        print(f"[Stable_Makeup] Loading makeup model from: {resolved_makeup_path}")
+        
+        pipe = FluxPipeline.from_pretrained(resolved_flux_path, torch_dtype=torch.bfloat16, device="cuda")
         transformer = FluxTransformer2DModel.from_pretrained(
-            flux_path,
+            resolved_flux_path,
             subfolder="transformer",
             torch_dtype=torch.bfloat16,
             device="cuda"
@@ -367,12 +412,13 @@ class StableMakeup_LoadModel:
 
         pipe.transformer = transformer
         pipe.to("cuda")
-        wrappedPipe = WrappedPipe(pipe, makeup_model_path)
+        wrappedPipe = WrappedPipe(pipe, resolved_makeup_path)
         
-        # model
+        # model - resolve face parsing model path
         n_classes = 19
         net = BiSeNet(n_classes=n_classes).cuda()
-        net.load_state_dict(torch.load("models/stable_makeup/face-parsing.PyTorch/79999_iter.pth"))
+        face_parsing_path = resolve_model_path("models/stable_makeup/face-parsing.PyTorch/79999_iter.pth")
+        net.load_state_dict(torch.load(face_parsing_path))
         net.eval()
 
         # Unet= pipe.unet
